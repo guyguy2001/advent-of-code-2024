@@ -27,42 +27,40 @@
    (every? #(<= 1 % 3) diffs)
    (every? #(<= -3 % -1) diffs)))
 
-; TODO: This misses 5 1 3 4 5 6 7
+
+
+(defn is-diff-safe
+  [a b min max]
+  (or (nil? a)
+      (nil? b)
+      (<= min (- b a) max)))
+
+
+(defn should-remove-b
+  [a b c d min max]
+  (or (not (is-diff-safe a b min max))
+      (and (not (is-diff-safe b c min max))
+           (not (is-diff-safe b d min max)))))
+
 (defn entries-diffs-in-range-single-removal?
   [xs min max]
-  (loop [[x y z & xs] xs
-         combined-already false
-         first true]
-    (println [x y z xs combined-already])
+  (loop [[a b c d & xs] (into [nil] xs)
+         combined-already false]
+      ; This should make a decision about b
+
+      ;; (println [a b c d xs combined-already])
     (cond
-      (nil? z) (or (<= min (- y x) max)
-                    ; potenitally drop the last item
-                   (not combined-already))
+      (nil? b) true
 
-      (and
-       (<= min (- y x) max)
-       (<= min (- z y) max))
-      (recur (into [y z] xs)
-             combined-already
-             false)
-
+      (not (should-remove-b a b c d min max))
+      (recur (into [b c d] xs)
+             combined-already)
 
       combined-already false
 
-      (<= min (- z x) max)
-      (recur (into [x z] xs)
-             true
-             false)
-
-      (and first
-           (not (<= min (- y x) max))) ; drop the first item
-      (recur (into [y z] xs)
-             true
-             false)
       :else
-      (recur (into [y z] xs)
-             combined-already
-             false))))
+      (recur (into [a c d] xs)
+             true))))
 
 (comment
 
@@ -138,19 +136,7 @@
   :rcf)
 
 (comment
-  (defn is-diff-safe
-    [a b min max]
-    (or (nil? a)
-        (nil? b)
-        (<= min (- b a) max)))
 
-  (def xs `(20 23 23 22 26 27 29 30))
-
-  (defn should-remove-b
-    [a b c d min max]
-    (or (not (is-diff-safe a b min max))
-        (and (not (is-diff-safe b c min max))
-             (not (is-diff-safe b d min max)))))
   (should-remove-b nil 20 23 22 1 3)
   (should-remove-b 20 23 22 26 1 3)
   (should-remove-b 23 22 27 26 1 3)
