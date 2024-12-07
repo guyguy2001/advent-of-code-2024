@@ -1,11 +1,11 @@
-(ns advent-2024.q3
+(ns advent-2024.day3
   (:require
    [clojure.string :as str]))
 
-(def test-path "resources\\q3\\test.txt")
-(def input-path "resources/q3/input.txt")
-(def test2-path "resources\\q3\\test2.txt")
-(def input2-path "resources/q3/input2.txt")
+(def test-path "resources\\day3\\test.txt")
+(def input-path "resources/day3/input.txt")
+(def test2-path "resources\\day3\\test2.txt")
+(def input2-path "resources/day3/input2.txt")
 
 (defn read-input
   [text]

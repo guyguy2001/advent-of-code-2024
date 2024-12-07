@@ -1,8 +1,8 @@
-(ns advent-2024.q4
+(ns advent-2024.day4
   (:require [clojure.string :as str]))
 
-(def test-path "resources/q4/test.txt")
-(def input-path "resources/q4/input.txt")
+(def test-path "resources/day4/test.txt")
+(def input-path "resources/day4/input.txt")
 
 (defn cols
   [grid]
@@ -95,7 +95,7 @@
                  (multi-find-marching-in-grid-with-symbol grid (map reverse (backslash-diag-marches (cols grid) (rows grid))) pattern "!\\")]))
 
 ; actual solution
-(defn solve-q4-1
+(defn solve-day4-1
   [text]
   (-> text
       (read-input)
@@ -123,7 +123,7 @@
                             (= (map (fn [[x y]] (get-in grid [y x]))
                                     (make-cross [x y] orientation))
                                pattern)))))
-(defn solve-q4-2
+(defn solve-day4-2
   [text]
   (-> text
       (read-input)
@@ -164,9 +164,9 @@
   *e
   (count (occurrences-in-grid2 (read-input (slurp test-path)) "XMAS"))
 
-  (solve-q4-1 (slurp test-path))
-  (solve-q4-1 (slurp input-path))
-  (solve-q4-2 (slurp test-path))
-  (solve-q4-2 (slurp input-path))
+  (solve-day4-1 (slurp test-path))
+  (solve-day4-1 (slurp input-path))
+  (solve-day4-2 (slurp test-path))
+  (solve-day4-2 (slurp input-path))
   (read-input (slurp test-path))
   :rcf)

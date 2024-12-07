@@ -1,8 +1,8 @@
-(ns advent-2024.q2
+(ns advent-2024.day2
   (:require [clojure.string :as str]))
 
-(def test-path "resources\\q2\\1-test.txt")
-(def input-path "resources\\q2\\1-input.txt")
+(def test-path "resources\\day2\\1-test.txt")
+(def input-path "resources\\day2\\1-input.txt")
 
 (defn to-int
   [s]
@@ -166,7 +166,7 @@
   :rcf)
 
 
-(defn solve-q2-1
+(defn solve-day2-1
   [input-file-path]
   (->> input-file-path
        (slurp)
@@ -175,7 +175,7 @@
        (filter diffs-safe?)
        (count)))
 
-(defn solve-q2-2
+(defn solve-day2-2
   [input-file-path]
   (->> input-file-path
        (slurp)
@@ -198,10 +198,10 @@
        (subvec (vec entries) 1))
   (get-diffs entries)
   (diffs-safe? entries)
-  (solve-q2-1 test-path)
-  (solve-q2-1 input-path)
-  (solve-q2-2 test-path)
-  (solve-q2-2 input-path)
+  (solve-day2-1 test-path)
+  (solve-day2-1 input-path)
+  (solve-day2-2 test-path)
+  (solve-day2-2 input-path)
   (def xs `((7 6 4 2 1) (1 2 7 8 9) (9 7 6 2 1) (1 3 2 4 5) (8 6 4 4 1) (1 3 6 7 9)))
   (filter entries-safe-with-deletion? xs)
   (entries-safe-with-deletion? (first xs))

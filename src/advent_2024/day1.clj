@@ -1,4 +1,4 @@
-(ns q1
+(ns advent-2024.day1
   (:require [clojure.string :as str]))
 
 
@@ -42,7 +42,7 @@
 33464   91461")
 
   ; 1.a
-  (apply sum-of-distances (read-input (slurp "resources/q1a.txt")))
+  (apply sum-of-distances (read-input (slurp "resources/day1a.txt")))
 
   (defn list->apperance-amounts
     "[1 1 10] -> {1 2, 10 1}"
@@ -52,7 +52,7 @@
             l))
 
   ; 1.b
-  (let [[l1 l2] (read-input (slurp "resources/q1a.txt"))
+  (let [[l1 l2] (read-input (slurp "resources/day1a.txt"))
         [app1 app2] (map list->apperance-amounts [l1 l2])
         _ (println app1 app2)
         result (reduce (fn [total k] (+ total ((fnil * 0 0) (get app1 k) (get app2 k) k)))
