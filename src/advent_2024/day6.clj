@@ -74,6 +74,16 @@
       (find-in-grid \3))
   :rcf)
 
+(defn grid-keys
+  [grid]
+  (for [x (range (width grid))
+        y (range (height grid))]
+    [x y]))
+
+(comment
+  (grid-keys (make-grid 5 5 nil))
+  :rcf)
+
 ; --------- Vec2 -------
 (defn vec2-add
   [a b]
@@ -88,10 +98,13 @@
 
 (defn parse-input
   [text]
-  (let [grid (str->grid text)] {:guard {:pos (find-in-grid grid \^)
-                                        :direction guard-starting-pos}
-                                :grid (map-grid (fn [char] {:pillar (= char \#)})
-                                                grid)}))
+  (let [grid (str->grid text)
+        guard {:pos (find-in-grid grid \^)
+               :direction guard-starting-pos}]
+    {:guard guard
+     :starting-guard guard
+     :grid (map-grid (fn [char] {:pillar (= char \#)})
+                     grid)}))
 
 (comment
   (parse-input (slurp test-path))
@@ -103,14 +116,15 @@
 ; ------ Game Logic ------
 (defn update-visited-square
   [state]
-  (let [[x y] (get-in state [:guard :pos])]
+  (let [[x y] (get-in state [:guard :pos])
+        direction (get-in state [:guard :direction])]
     (as-> state s
       (if (not (:visited (get-grid (:grid s) x y)))
         (update s :num-visited (fnil inc 0))
         s)
       (update s :grid
               update-grid x y
-              assoc :visited true))))
+              update-in [:visited :directions] (fnil conj #{}) direction))))
 
 (def directions-order {[0 -1] [1 0]
                        [1 0] [0 1]
@@ -168,6 +182,88 @@
 (comment
   (solve-day6-a (slurp test-path))
   (solve-day6-a (slurp input-path))
+  :rcf)
+
+; ------ Part 2 ----------
+; TODO: I think I can save on each square which square is the last one in the road, and then have the guard teleport there, instead of walkign O(distance) squares
+; Ideas for how to not completely code-dup the simulation between parts 1 and 2:
+; * have update-visited-square save the info relevant to both stages, and just have 2 different grids for the simulations, so they won't conflicts
+; * pass to the simulation a callback what to mark on each iteration
+; This is probalby simple enough to not need this, but still
+(defn update-visited-square2
+  [state]
+  (let [[x y] (get-in state [:guard :pos])
+        direction (get-in state [:guard :direction])]
+    (as-> state s
+      (if (not (:visited (get-grid (:grid s) x y)))
+        (update s :num-visited (fnil inc 0))
+        s)
+        (println x y)
+      (update s :grid
+              update-grid x y
+              update-in [:visited :counters direction] (fnil inc 0)))))
+
+(defn perform-turn2
+  [state]
+  (-> state
+      (update-visited-square2)
+      (move-guard)
+      (check-for-out-of-bounds)))
+
+(defn run-loop-checking-sim
+  [state]
+  (loop [state state]
+    (if (:done state)
+      state
+      (recur (perform-turn2 state)))))
+
+(defn get-guard-path
+  [part1-results]
+  (->> (grid-keys (:grid part1-results))
+       (filter (fn [[x y]] (:visited (get-grid (:grid part1-results) x y))))))
+
+(defn are-we-in-loop
+  [state]
+  (let [guard-pos (get-in state [:guard :pos])
+        current-cell (apply get-grid (:grid state) guard-pos)
+        counters (get-in current-cell [:directions :counters])]
+    counters))
+
+(comment
+  (def results (run-simulation (parse-input (slurp test-path))))
+  (run-loop-checking-sim results)
+  :rcf)
+
+(defn does-state-enter-a-loop
+  [state]
+  (loop [state state]
+    (cond
+      (:done state) [state false]
+      (some? #(> % 1) (get-in (:counters)))
+
+      :else
+      (recur (perform-turn2 state)))))
+
+(defn reset-simulation
+  [state]
+  (-> state
+      (assoc :guard (:starting-guard state))
+      (assoc :done false)))
+
+(defn solve-day6-b
+  [text]
+  (let [starting-state (parse-input text)
+        results (-> starting-state
+                    (run-simulation))]
+    (run-loop-checking-sim (-> results
+                               (assoc :guard (get starting-state :guard))
+                               (assoc :done false)))))
+
+(comment
+  (def results (run-simulation (parse-input (slurp test-path))))
+  (reset-simulation results)
+  (run-loop-checking-sim (reset-simulation results))
+  (solve-day6-b (slurp test-path))
   :rcf)
 
 ; ------ Graphics --------
