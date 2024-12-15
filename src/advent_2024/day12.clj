@@ -11,6 +11,9 @@
 (def input-path "resources/day12/input.txt")
 
 (def test1-grid (str/split-lines (slurp test1-path)))
+(def test2-grid (str/split-lines (slurp test2-path)))
+(def test3-grid (str/split-lines (slurp test3-path)))
+(def input-grid (str/split-lines (slurp input-path)))
 
 "Definitions:
  Groups tree grid - a grid where each cell is either nil if it's the first in a group, "
@@ -63,7 +66,6 @@
   (let [starting-grid (grid/map-grid (fn [letter] {:letter letter :group nil}) ascii-grid)
         [result _next-group-id]
         (reduce (fn [[grid group-id] pos]
-                  (println grid)
                   (if (nil? (:group (grid/get-grid grid pos)))
                     (let [region (bfs-area ascii-grid pos)]
                       [(reduce #(add-to-group %1 %2 group-id) grid region)
@@ -73,29 +75,43 @@
                 (grid/grid-keys starting-grid))]
     result))
 
+(defn calculate-area-sizes
+  [groups-grid]
+  (grid/grid-keys groups-grid))
+
+; ---------- UI ---------
+
+(def colors [:black
+             :white
+             :red
+             :green
+             :blue
+             :cyan
+             :magenta
+             :yellow])
+
+(def fg+bg (filter (fn [[fg bg]] (not= fg bg))
+                   (for [bg colors
+                         fg colors]
+                     [fg bg])))
+
 (comment
-  (ascii-grid->groups-grid test1-grid)
-  (defn ascii-grid->groups-grid
-    [ascii-grid]
-    (loop [grid (grid/map-grid
-                 (fn [letter] {:letter letter :group nil})
-                 ascii-grid)
-           group-id 0]
-      (if (= (:group)) (let [region (bfs-area ascii-grid pos)]
-                         (reduce #(add-to-group %1 %2 group-id) grid region))))))
+  fg+bg
+  :rcf)
 
 (defn draw-grid
   "grid: [[{:letter \\A :group 1}]]"
   [screen grid]
   (doseq [[x y] (grid/grid-keys grid)]
-    (let [{letter :letter group :group} (grid/get-grid grid [x y])]
+    (let [{letter :letter group :group} (grid/get-grid grid [x y])
+          [fg bg] (nth (cycle fg+bg) group)]
       (println group)
-      (s/put-string screen x y (str letter) {:fg :green :bg :none}))))
+      (s/put-string screen x y (str letter) {:fg fg :bg bg}))))
 
-; ---------- UI ---------
 (defn visulization-main
   [screen input-grid]
-  (let [grid (grid/map-grid (fn [c] {:letter c :group 1}) input-grid)]
+  (let [grid (ascii-grid->groups-grid input-grid)]
+    (s/clear screen)
     (draw-grid screen grid)
     (s/redraw screen)))
 
@@ -104,6 +120,13 @@
     (def screen (s/get-screen))
     (s/start screen))
   (visulization-main screen test1-grid)
+  (visulization-main screen test2-grid)
+  (visulization-main screen test3-grid)
+  (visulization-main screen input-grid)
+  input-grid
+  (time (def x (bfs-area input-grid [0 0])))
+  (time (ascii-grid->groups-grid input-grid))
+  (ascii-grid->groups-grid test1-grid)
 
   (s/redraw screen)
   (str/split-lines (slurp test1-path))
